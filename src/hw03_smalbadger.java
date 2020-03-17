@@ -50,7 +50,10 @@ class hw03_smalbadger{
 		paths.add(new Path(initial));
 		
 		// 2.
-		while (!paths.isEmpty() && !(paths.get(0).terminalState() == goal)) {
+		while (!paths.isEmpty() && !(paths.get(0).terminalState().equals(goal))) {
+			
+			// DEBUG
+			Output.printPathQueue(paths, heuristic);
 			
 			// 2a.
 			Path best = paths.remove(0);
@@ -108,9 +111,9 @@ class Input {
 	
 	static public Input getHardCoded() {
 		char [][] initial_config = {
-				{'1', '2', '-'},
-				{'8', '6', '3'},
-				{'7', '5', '4'}
+				{'8', '-', '2'},
+				{'7', '1', '3'},
+				{'5', '6', '4'}
 		};
 		
 		char [][] goal_config = {
@@ -156,11 +159,33 @@ class Output {
 	}
 	
 	private static void printSuccess(Path optimalPath) {
+		System.out.println("Solution:\n");
 		
+		for (Operator o : optimalPath.getOperators()) {
+			System.out.println("Move blank " + o.toString().toLowerCase());
+		}
+		System.out.println();
+		
+		System.out.printf("Given the selected heuristic, the solution required %d moves.\n", optimalPath.getOperators().size());
+		System.out.printf("The A* explored %d number of nodes to find this solution.", State.database.size());
 	}
 	
 	private static void printFailure() {
-		
+		System.out.println("For the above combination of the initial/goal states, there is no solution.");
+	}
+	
+	public static void printPathQueue(ArrayList<Path> paths, Heuristic heuristic) {
+		System.out.println("===================================");
+		System.out.println("DEBUG: Paths in queue");
+		System.out.println("===================================");
+		for (Path p : paths) {
+			System.out.printf("EST:%6.3f", p.estimate(heuristic));
+			for (Operator o : p.getOperators()) {
+				System.out.print(" -> " + o.toString());
+			}
+			System.out.println();
+		}
+		System.out.println();
 	}
 }
 
@@ -209,8 +234,8 @@ class State {
 		 * Gets the operator that would transform the current state into the resultant state.
 		 * If no operator transforms the current state into the result state, null is returned.
 		 */
-		for (Operator o : Operator.values()) {
-			if (this.transform(o) == result) {
+		for (Operator o : this.getOperators()) {
+			if (this.transform(o).equals(result)) {
 				return o;
 			}
 		}
@@ -249,8 +274,7 @@ class State {
 	
 	public boolean equals(Object obj) {
 		/**
-		 * Allows us to overload the == operator.
-		 * 
+		 * Allows us to compare 2 states for equality.
 		 * States are equal if they have the same board.
 		 */
 		if (obj == this)
@@ -274,8 +298,7 @@ class State {
 	@Override 
 	public int hashCode() { 
 		/**
-		 * Necessary to override for comparing states with the == operator.
-		 * 
+		 * Allows us to hash a state.
 		 * To get the hashcode, we append all numbers in the state together and 
 		 * replace the blank with 0, then parse into an integer.
 		 */
@@ -293,7 +316,7 @@ class State {
 		/**
 		 * Gets neighbors that are not already explored and 
 		 * in the process, explores the neighbor by adding it 
-		 * to the set of all explored states.
+		 * to database.
 		 */
 		ArrayList<State> unexplored = new ArrayList<State>();
 		
@@ -317,13 +340,18 @@ class State {
 		if (!this.getOperators().contains(o))
 			return null;
 		
-		int originalRow = this.getLocation('-').get("row");
-		int originalCol = this.getLocation('-').get("column");
+		int originalRow = this.getLocation('-').get("row") - 1;
+		int originalCol = this.getLocation('-').get("column") - 1;
 		int tradeRow = originalRow;
 		int tradeCol = originalCol;
 		Operator opposite;
 		
-		char[][] newBoard = this.board.clone();
+		char[][] newBoard = new char[3][3];
+		for (int i=0; i<3; i++) {
+			for (int j=0; j<3; j++) {
+				newBoard[i][j] = this.board[i][j];
+			}
+		}
 		
 		if (o == Operator.UP) {
 			tradeRow = originalRow - 1;
@@ -341,8 +369,9 @@ class State {
 			tradeCol = originalCol + 1;
 			opposite = Operator.LEFT;
 		}
-			
+
 		newBoard[originalRow][originalCol] = newBoard[tradeRow][tradeCol];
+		newBoard[tradeRow][tradeCol] = '-';
 		State newState = new State(newBoard);
 		
 		return newState;
@@ -389,7 +418,7 @@ class Path{
 		 * Else, return false.
 		 */
 		for (int i=0; i<this.states.size(); i++) {
-			if (this.states.get(i) == state) {
+			if (this.states.get(i).equals(state)) {
 				return true;
 			}
 		}
@@ -404,9 +433,12 @@ class Path{
 		ArrayList<Operator> ops = new ArrayList<>();
 		
 		State cur = this.states.get(0);
+		State next;
 		
 		for (int i=1; i<this.states.size(); i++) {
-			ops.add(cur.getOperator(this.states.get(i)));
+			next = this.states.get(i);
+			ops.add(cur.getOperator(next));
+			cur = next;
 		}
 		
 		return ops;
@@ -420,7 +452,7 @@ class Path{
 	}
 	
 	public float estimate(Heuristic heuristic) {
-		return this.length() + heuristic.eval(this.terminalState());
+		return this.getOperators().size() + heuristic.eval(this.terminalState());
 	}
 	
 	public State terminalState() {
