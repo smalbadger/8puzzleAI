@@ -11,17 +11,14 @@ class hw03_smalbadger{
 	
 	public static void main(String[] args) {
 		
-		char [][] initial_config = new char[3][3];
-		char [][] goal_config    = new char[3][3];
+		//Input input = Input.read();
+		Input input = Input.getHardCoded();
 		
-		State initial = new State(initial_config);
-		State goal    = new State(goal_config);
-		Heuristic heuristic = new MisplacedTiles(goal);
-		
-		aStar(initial, goal, heuristic);
+		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
+		Output.printDone(path);
 	}
 	
-	private static void aStar(State initial, State goal, Heuristic heuristic) {
+	private static Path aStar(State initial, State goal, Heuristic heuristic) {
 		/**
 		 * FROM MODULE 4 (PAGE 13 CLASS NOTES)
 		 * 
@@ -45,6 +42,7 @@ class hw03_smalbadger{
 		 *		    estimate of the cost remaining, with least cost paths in front.
 		 *
 		 *	3. If the goal node is found, announce success; otherwise, announce failure.
+		 *     (we return the path on success - null on failure)
 		 */
 		
 		// 1.
@@ -86,11 +84,9 @@ class hw03_smalbadger{
 		
 		// 3
 		if (!paths.isEmpty()) {
-			Output.printSuccess(paths.get(0));
+			return paths.get(0);
 		}
-		else {
-			Output.printFailure();
-		}
+		return null;
 	}
 }
 
@@ -101,24 +97,69 @@ class hw03_smalbadger{
 
 class Input {
 	
-	private Input() {
-		// TODO: Store initial state, goal state, and heuristic.
+	private State initial, goal;
+	private Heuristic heuristic;
+	
+	private Input(State initial, State goal, Heuristic heuristic) {
+		this.initial = initial;
+		this.goal = goal;
+		this.heuristic = heuristic;
+	}
+	
+	static public Input getHardCoded() {
+		char [][] initial_config = {
+				{'1', '2', '-'},
+				{'8', '6', '3'},
+				{'7', '5', '4'}
+		};
+		
+		char [][] goal_config = {
+				{'1', '2', '3'},
+				{'8', '-', '4'},
+				{'7', '6', '5'}
+		};
+		
+		State initial = new State(initial_config);
+		State goal    = new State(goal_config);
+		Heuristic heuristic = new MisplacedTiles(goal);
+		
+		return new Input(initial, goal, heuristic);
 	}
 	
 	static public Input read() {
-		// TODO: Get input from user, add properties to the input object and return it.
-		
-		Input input = new Input();
-		return input;
+		// TODO: Get input from user
+		return null;
+	}
+	
+	public State getInitial() {
+		return this.initial;
+	}
+	
+	public State getGoal() {
+		return this.goal;
+	}
+	
+	public Heuristic getHeuristic() {
+		return this.heuristic;
 	}
 }
 
 class Output {
-	public static void printSuccess(Path optimalPath) {
+	
+	public static void printDone(Path path) {
+		if (path == null) {
+			Output.printFailure();
+		}
+		else {
+			Output.printSuccess(path);
+		}
+	}
+	
+	private static void printSuccess(Path optimalPath) {
 		
 	}
 	
-	public static void printFailure() {
+	private static void printFailure() {
 		
 	}
 }
