@@ -1,6 +1,10 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Scanner;
 import java.lang.Math;
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -11,8 +15,8 @@ class hw03_smalbadger{
 	
 	public static void main(String[] args) {
 		
-		//Input input = Input.read();
-		Input input = Input.getHardCoded();
+		Input input = Input.read();
+		//Input input = Input.getHardCoded();
 		
 		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
 		Output.printDone(path);
@@ -53,7 +57,7 @@ class hw03_smalbadger{
 		while (!paths.isEmpty() && !(paths.get(0).terminalState().equals(goal))) {
 			
 			// DEBUG
-			Output.printPathQueue(paths, heuristic);
+			//Output.printPathQueue(paths, heuristic);
 			
 			// 2a.
 			Path best = paths.remove(0);
@@ -100,16 +104,38 @@ class hw03_smalbadger{
 
 class Input {
 	
+	private static Scanner userInput;
 	private State initial, goal;
 	private Heuristic heuristic;
 	
 	private Input(State initial, State goal, Heuristic heuristic) {
+		/**
+		 * An object carrying all necessary information from the user.
+		 */
 		this.initial = initial;
 		this.goal = goal;
 		this.heuristic = heuristic;
 	}
 	
+	public State getInitial() {
+		return this.initial;
+	}
+	
+	public State getGoal() {
+		return this.goal;
+	}
+	
+	public Heuristic getHeuristic() {
+		return this.heuristic;
+	}
+	
 	static public Input getHardCoded() {
+		/**
+		 * A helper method for testing the program so we don't have to enter
+		 * things every time we run.
+		 * 
+		 * Hardcodes the initial and goal states as well as the heuristic.
+		 */
 		char [][] initial_config = {
 				{'8', '-', '2'},
 				{'7', '1', '3'},
@@ -130,24 +156,127 @@ class Input {
 	}
 	
 	static public Input read() {
-		// TODO: Get input from user
-		return null;
+		/**
+		 * Read the initial state, goal state, and heuristic from the user
+		 * and return an Input object carrying the information.
+		 */
+		
+		userInput = new Scanner(System.in);
+		
+		// get initial state
+		Output.printQueryForInitialState();
+		State initial = Input.readState();
+		
+		// get goal state
+		Output.printQueryForGoalState();
+		State goal = Input.readState();
+		
+		// get heuristic
+		HashMap<String, Heuristic> heuristicMapping = new HashMap<>();
+		heuristicMapping.put("a", new MisplacedTiles(goal));
+		heuristicMapping.put("b", new ManhattanDistance(goal));
+		heuristicMapping.put("c", new CustomHeuristic(goal));
+		Heuristic heuristic = heuristicMapping.get(Input.readHeuristicOption(heuristicMapping));
+		
+		userInput.close();
+		
+		return new Input(initial, goal, heuristic);
 	}
 	
-	public State getInitial() {
-		return this.initial;
+	static private State readState() {
+		HashSet<Character> validNums = new HashSet<>(Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8'));
+		
+		char[] b = new char[9];	// create empty flattened board.
+		int foundNums = 0; // not to exceed 8
+		int foundDashes = 0; // not to exceed 1
+		boolean done = false;
+		
+		while (!done) {
+			String line = userInput.nextLine();
+			
+			for (int i=0; i<line.length(); i++) {
+				char cur = line.charAt(i);
+				
+				if (validNums.contains(cur)) {
+					foundNums += 1;
+					validNums.remove(cur);
+				}
+				else if (cur == '-' && foundDashes == 0) {
+					foundDashes += 1;
+				}
+				else if (Character.isWhitespace(cur)) {
+					continue;
+				}
+				else {
+					Output.printIllegalChar(cur);
+					Output.printStartOverState();
+					return readState();
+				}
+				
+				b[foundNums + foundDashes - 1] = cur;
+				
+				if (foundNums == 8 && foundDashes == 1) {
+					done = true;
+					break;
+				}
+			}
+		}
+		
+		// convert the board to be 3x3
+		char[][] board = {{b[0], b[1], b[2]}, {b[3], b[4], b[5]}, {b[6], b[7], b[8]}};
+		return new State(board);
 	}
 	
-	public State getGoal() {
-		return this.goal;
+	static private String readHeuristicOption(HashMap<String, Heuristic> heuristicMapping) {
+		String read = "";
+		
+		while (!heuristicMapping.containsKey(read)) {
+			Output.printQueryForHeuristic(heuristicMapping);
+			read = userInput.nextLine().trim();
+			
+			if (!heuristicMapping.containsKey(read)) {
+				Output.printIllegalHeuristicOption(read);
+			}
+		}
+		
+		return read;
 	}
 	
-	public Heuristic getHeuristic() {
-		return this.heuristic;
-	}
 }
 
 class Output {
+	
+	public static void printQueryForInitialState() {
+		System.out.println("Enter the initial state");
+	}
+	
+	public static void printQueryForGoalState() {
+		System.out.println("Enter the goal state");
+	}
+	
+	public static void printQueryForHeuristic(Map<String, Heuristic> heuristicMapping) {
+		System.out.println("Select the heuristic");
+		
+		ArrayList<String> keys = new ArrayList<>(heuristicMapping.keySet().size());
+		keys.addAll(heuristicMapping.keySet());
+		Collections.sort(keys);
+		for (String key : keys) {
+			System.out.printf("%3s) %s\n", key, heuristicMapping.get(key).getSummary());
+		}
+	}
+	
+	public static void printIllegalChar(char illegalChar) {
+		System.out.printf("Illegal Character '%c'\n", illegalChar);
+		System.out.println("The character was not a digit in the range 1-8, not a dash, or was a duplicate character.\n");
+	}
+	
+	public static void printStartOverState() {
+		System.out.println("Because of the error above, please enter the state again from the beginning.");
+	}
+	
+	public static void printIllegalHeuristicOption(String option) {
+		System.out.printf("'%s' is not a valid heuristic option.\n", option);
+	}
 	
 	public static void printDone(Path path) {
 		if (path == null) {
@@ -484,7 +613,7 @@ enum Operator {
 // HEURISTICS
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-class Heuristic {
+abstract class Heuristic {
 	
 	protected final State goal;
 	
@@ -494,6 +623,10 @@ class Heuristic {
 	
 	public float eval(State src) {
 		return 0;
+	}
+	
+	public String getSummary() {
+		return "No Summary";
 	}
 }
 
