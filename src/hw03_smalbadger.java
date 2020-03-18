@@ -14,10 +14,8 @@ import java.lang.Math;
 class hw03_smalbadger{
 	
 	public static void main(String[] args) {
-		
-		Input input = Input.read();
 		//Input input = Input.getHardCoded();
-		
+		Input input = Input.read();
 		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
 		Output.printDone(path);
 	}
@@ -473,8 +471,6 @@ class State {
 		int originalCol = this.getLocation('-').get("column") - 1;
 		int tradeRow = originalRow;
 		int tradeCol = originalCol;
-		Operator opposite;
-		
 		char[][] newBoard = new char[3][3];
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<3; j++) {
@@ -484,19 +480,15 @@ class State {
 		
 		if (o == Operator.UP) {
 			tradeRow = originalRow - 1;
-			opposite = Operator.DOWN;
 		}
 		if (o == Operator.DOWN) {
 			tradeRow = originalRow + 1;
-			opposite = Operator.UP;
 		}
 		if (o == Operator.LEFT) {
 			tradeCol = originalCol - 1;
-			opposite = Operator.RIGHT;
 		}
 		if (o == Operator.RIGHT) {
 			tradeCol = originalCol + 1;
-			opposite = Operator.LEFT;
 		}
 
 		newBoard[originalRow][originalCol] = newBoard[tradeRow][tradeCol];
@@ -591,6 +583,7 @@ class Path{
 		return this.states.get(this.states.size() - 1);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Path copy() {
 		return new Path((ArrayList<State>)this.states.clone());
 	}
@@ -650,6 +643,10 @@ class MisplacedTiles extends Heuristic {
 		
 		return numMisplaced;
 	}
+	
+	public String getSummary() {
+		return "Number of misplaced tiles";
+	}
 }
 
 class ManhattanDistance extends Heuristic {
@@ -675,6 +672,9 @@ class ManhattanDistance extends Heuristic {
 		return dist;
 	}
 	
+	public String getSummary() {
+		return "Manhattan Distance";
+	}
 }
 
 class CustomHeuristic extends Heuristic {
@@ -692,4 +692,7 @@ class CustomHeuristic extends Heuristic {
 		return val;
 	}
 	
+	public String getSummary() {
+		return "Custom heuristic";
+	}
 }
