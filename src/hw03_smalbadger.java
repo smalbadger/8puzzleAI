@@ -14,8 +14,8 @@ import java.lang.Math;
 class hw03_smalbadger{
 	
 	public static void main(String[] args) {
-		//Input input = Input.getHardCoded();
-		Input input = Input.read();
+		Input input = Input.getHardCoded();
+		//Input input = Input.read();
 		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
 		Output.printDone(path);
 	}
@@ -55,11 +55,14 @@ class hw03_smalbadger{
 		while (!paths.isEmpty() && !(paths.get(0).terminalState().equals(goal))) {
 			
 			// DEBUG
-			//Output.printPathQueue(paths, heuristic);
+			Output.printPathQueue(paths, heuristic);
 			
 			// 2a.
 			Path best = paths.remove(0);
 			ArrayList<State> expansions = best.terminalState().getNeighbors();
+			
+			// DEBUG
+			Output.printChosenPath(best);
 			
 			for (State s : expansions) {
 				
@@ -135,20 +138,22 @@ class Input {
 		 * Hardcodes the initial and goal states as well as the heuristic.
 		 */
 		char [][] initial_config = {
-				{'8', '-', '2'},
-				{'7', '1', '3'},
-				{'5', '6', '4'}
+				{'5', '3', '6'},
+				{'2', '1', '8'},
+				{'4', '7', '-'}
 		};
 		
 		char [][] goal_config = {
 				{'1', '2', '3'},
-				{'8', '-', '4'},
-				{'7', '6', '5'}
+				{'4', '5', '6'},
+				{'7', '8', '-'}
 		};
 		
 		State initial = new State(initial_config);
 		State goal    = new State(goal_config);
-		Heuristic heuristic = new MisplacedTiles(goal);
+		//Heuristic heuristic = new MisplacedTiles(goal);
+		//Heuristic heuristic = new ManhattanDistance(goal);
+		Heuristic heuristic = new CustomHeuristic(goal);
 		
 		return new Input(initial, goal, heuristic);
 	}
@@ -302,16 +307,20 @@ class Output {
 	}
 	
 	public static void printPathQueue(ArrayList<Path> paths, Heuristic heuristic) {
-		System.out.println("===================================");
+		System.out.println("====================================");
 		System.out.println("DEBUG: Paths in queue");
-		System.out.println("===================================");
+		System.out.println("====================================");
 		for (Path p : paths) {
-			System.out.printf("EST:%6.3f", p.estimate(heuristic));
-			for (Operator o : p.getOperators()) {
-				System.out.print(" -> " + o.toString());
-			}
-			System.out.println();
+			System.out.printf("HEUR:%6.3f  EST:%6.3f %s\n", heuristic.eval(p.terminalState()), p.estimate(heuristic), p.toString());
 		}
+		System.out.println();
+	}
+	
+	public static void printChosenPath(Path p) {
+		System.out.println("++++++++++++++++++++++++++++++++++++");
+		System.out.println("DEBUG: Chosen Path");
+		System.out.println("++++++++++++++++++++++++++++++++++++");
+		System.out.println(p.toString());
 		System.out.println();
 	}
 }
@@ -497,6 +506,17 @@ class State {
 		
 		return newState;
 	}
+	
+	public String toString() {
+		String str = "";
+		for (int i=0; i<3; i++) {
+			for (int j=0; j<3; j++) {
+				str += String.format("%c ", this.board[i][j]);
+			}
+			str += "\n";
+		}
+		return str;
+	}
 }
 
 
@@ -588,8 +608,27 @@ class Path{
 		return new Path((ArrayList<State>)this.states.clone());
 	}
 	
-	public int compareTo(Path path, Heuristic heuristic) {
-		return (int)(this.estimate(heuristic) - path.estimate(heuristic));
+	public int compareTo(Path other, Heuristic heuristic) {
+		float est1 = this.estimate(heuristic);
+		float est2 = other.estimate(heuristic);
+		
+		if (est1 > est2) {
+			return 1;
+		}
+		else if (est1 == est2) {
+			return 0;
+		}
+		else {
+			return -1;
+		}
+	}
+	
+	@Override
+	public String toString() {
+		String str = "'";
+		for (Operator o : this.getOperators())
+			str += " -> " + o.toString();
+		return str + "'";
 	}
 }
 
@@ -635,7 +674,7 @@ class MisplacedTiles extends Heuristic {
 		
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<3; j++) {
-				if (src.getAt(i,j) != this.goal.getAt(i,j)) {
+				if (src.getAt(i, j) != '-' && src.getAt(i,j) != this.goal.getAt(i,j)) {
 					numMisplaced += 1;
 				}
 			}
@@ -644,8 +683,9 @@ class MisplacedTiles extends Heuristic {
 		return numMisplaced;
 	}
 	
+	@Override
 	public String getSummary() {
-		return "Number of misplaced tiles";
+		return "Number of non-blank misplaced tiles";
 	}
 }
 
@@ -662,8 +702,12 @@ class ManhattanDistance extends Heuristic {
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<3; j++) {
 				char find = src.getAt(i, j);
-				int goalRow = goal.getLocation(find).get("row");
-				int goalCol = goal.getLocation(find).get("column");
+				
+				if (find == '-')
+					continue;
+				
+				int goalRow = goal.getLocation(find).get("row") - 1;
+				int goalCol = goal.getLocation(find).get("column") - 1;
 				
 				dist += Math.abs(i-goalRow) + Math.abs(j-goalCol);
 			}
@@ -672,8 +716,9 @@ class ManhattanDistance extends Heuristic {
 		return dist;
 	}
 	
+	@Override
 	public String getSummary() {
-		return "Manhattan Distance";
+		return "Manhattan Distance of all non-blank tiles";
 	}
 }
 
@@ -684,15 +729,14 @@ class CustomHeuristic extends Heuristic {
 	}
 
 	@Override
-	public float eval(State initial) {
-		float val = 0.0f;
-		
-		// TODO: calculate heuristic value
-		
-		return val;
+	public float eval(State src) {
+		MisplacedTiles h1 = new MisplacedTiles(goal);
+		ManhattanDistance h2 = new ManhattanDistance(goal);
+		return (h1.eval(src) + h2.eval(src)) / 2;
 	}
 	
+	@Override
 	public String getSummary() {
-		return "Custom heuristic";
+		return "Mean of Misplaced Tiles and Manhattan Distance heuristics";
 	}
 }
