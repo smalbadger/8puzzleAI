@@ -14,8 +14,16 @@ import java.lang.Math;
 class hw03_smalbadger{
 	
 	public static void main(String[] args) {
-		Input input = Input.getHardCoded();
-		//Input input = Input.read();
+		/**
+		 * The entry point for the 8-puzzle program that handles all high-level steps:
+		 * 	- Getting input INITIAL_STATE, GOAL_STATE, and HEURISTIC
+		 * 	- Running the A* algorithm to solve the 8-puzzle.
+		 * 	- Print the result.
+		 * 
+		 * @param args  the command-line arguments to the program.
+		 */
+		//Input input = Input.getHardCoded();
+		Input input = Input.getFromUser();
 		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
 		Output.printDone(path);
 	}
@@ -45,6 +53,12 @@ class hw03_smalbadger{
 		 *
 		 *	3. If the goal node is found, announce success; otherwise, announce failure.
 		 *     (we return the path on success - null on failure)
+		 *     
+		 * @param initial    the state we start with
+		 * @param goal       the state we're trying to reach
+		 * @param heuristic  the heuristic used to solve the 8-puzzle more efficiently
+		 * 
+		 * @return the optimal path to solve the puzzle. If no solution exists, null is returned.
 		 */
 		
 		// 1.
@@ -55,14 +69,14 @@ class hw03_smalbadger{
 		while (!paths.isEmpty() && !(paths.get(0).terminalState().equals(goal))) {
 			
 			// DEBUG
-			Output.printPathQueue(paths, heuristic);
+			//Output.printPathQueue(paths, heuristic);
 			
 			// 2a.
 			Path best = paths.remove(0);
 			ArrayList<State> expansions = best.terminalState().getNeighbors();
 			
 			// DEBUG
-			Output.printChosenPath(best);
+			//Output.printChosenPath(best);
 			
 			for (State s : expansions) {
 				
@@ -104,14 +118,27 @@ class hw03_smalbadger{
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 class Input {
+	/**
+	 * This class handles all input operations via static methods.
+	 * An instance of the Input class holds the initial state, goal state, and heuristic.
+	 */
 	
-	private static Scanner userInput;
-	private State initial, goal;
-	private Heuristic heuristic;
+	
+	// STATIC
+	private static Scanner userInput;   // Used to read from console
+	
+	
+	// INSTANCE
+	private State initial, goal;		// The initial and goal states for the puzzle
+	private Heuristic heuristic;		
 	
 	private Input(State initial, State goal, Heuristic heuristic) {
 		/**
 		 * An object carrying all necessary information from the user.
+		 * 
+		 * @param initial    the initial state to start the puzzle with.
+		 * @param goal       the goal state we're trying to get to.
+		 * @param heuristic  the heuristic used to solve the 8-puzzle more efficiently.
 		 */
 		this.initial = initial;
 		this.goal = goal;
@@ -119,14 +146,23 @@ class Input {
 	}
 	
 	public State getInitial() {
+		/**
+		 * @return the initial state.
+		 */
 		return this.initial;
 	}
 	
 	public State getGoal() {
+		/**
+		 * @return the goal state
+		 */
 		return this.goal;
 	}
 	
 	public Heuristic getHeuristic() {
+		/**
+		 * @return the heuristic
+		 */
 		return this.heuristic;
 	}
 	
@@ -136,6 +172,8 @@ class Input {
 		 * things every time we run.
 		 * 
 		 * Hardcodes the initial and goal states as well as the heuristic.
+		 * 
+		 * @return the hard-coded input
 		 */
 		char [][] initial_config = {
 				{'5', '3', '6'},
@@ -158,10 +196,12 @@ class Input {
 		return new Input(initial, goal, heuristic);
 	}
 	
-	static public Input read() {
+	static public Input getFromUser() {
 		/**
 		 * Read the initial state, goal state, and heuristic from the user
 		 * and return an Input object carrying the information.
+		 * 
+		 * @return the input read in from the user.
 		 */
 		
 		userInput = new Scanner(System.in);
@@ -187,6 +227,17 @@ class Input {
 	}
 	
 	static private State readState() {
+		/**
+		 * Reads a single state from the console.
+		 * 
+		 * The state must have a all numbers 1-8 and a hyphen, but no other characters.
+		 * Error checking is performed to make sure that the puzzle contains all the correct
+		 * information. If something was not entered right, the user will be asked to start over.
+		 * 
+		 * NOTE: all whitespace is ignored.
+		 * 
+		 * @return the state that was read from the user.
+		 */
 		HashSet<Character> validNums = new HashSet<>(Arrays.asList('1', '2', '3', '4', '5', '6', '7', '8'));
 		
 		char[] b = new char[9];	// create empty flattened board.
@@ -231,6 +282,12 @@ class Input {
 	}
 	
 	static private String readHeuristicOption(HashMap<String, Heuristic> heuristicMapping) {
+		/**
+		 * Reads the heuristic option. If an invalid option is chosen, the user will be prompted again.
+		 * 
+		 * @param heuristicMapping  maps the user options to heuristics ("a" -> MisplacedTiles, etc.)
+		 * @return the option of the heuristic chosen (a, b, c, etc.)
+		 */
 		String read = "";
 		
 		while (!heuristicMapping.containsKey(read)) {
@@ -250,14 +307,25 @@ class Input {
 class Output {
 	
 	public static void printQueryForInitialState() {
+		/**
+		 * Ask the user to enter the initial state.
+		 */
 		System.out.println("Enter the initial state");
 	}
 	
 	public static void printQueryForGoalState() {
+		/**
+		 * Ask the user to enter the goal state.
+		 */
 		System.out.println("Enter the goal state");
 	}
 	
 	public static void printQueryForHeuristic(Map<String, Heuristic> heuristicMapping) {
+		/**
+		 * Ask the user to chose the heuristic to use.
+		 * 
+		 * @param heuristicMapping  maps the user options to heuristics ("a" -> MisplacedTiles, etc.)
+		 */
 		System.out.println("Select the heuristic");
 		
 		ArrayList<String> keys = new ArrayList<>(heuristicMapping.keySet().size());
@@ -269,19 +337,40 @@ class Output {
 	}
 	
 	public static void printIllegalChar(char illegalChar) {
+		/**
+		 * Let the user know that an invalid character was read in while getting a state from the user.
+		 * 
+		 * @param illegalChar  the character that was detected to be illegal.
+		 */
 		System.out.printf("Illegal Character '%c'\n", illegalChar);
 		System.out.println("The character was not a digit in the range 1-8, not a dash, or was a duplicate character.\n");
 	}
 	
 	public static void printStartOverState() {
+		/**
+		 * Tell the user to re-enter the state starting from the beginning because of an error.
+		 */
 		System.out.println("Because of the error above, please enter the state again from the beginning.");
 	}
 	
 	public static void printIllegalHeuristicOption(String option) {
+		/**
+		 * Tell the user that the selected heuristic was not a valid option.
+		 * 
+		 * @param option  the option of the heuristic to use (a, b, c, etc.)
+		 */
 		System.out.printf("'%s' is not a valid heuristic option.\n", option);
 	}
 	
 	public static void printDone(Path path) {
+		/**
+		 * Tell the user that the program is done running. The following cases can happen.
+		 * 
+		 * - If the path is null, the puzzle was not solved.
+		 * - If the path is not null, print out the moves in the path and tell how many states were explored.
+		 * 
+		 * @param path  the optimal path to solve the puzzle (null if un-solvable)
+		 */
 		if (path == null) {
 			Output.printFailure();
 		}
@@ -291,6 +380,11 @@ class Output {
 	}
 	
 	private static void printSuccess(Path optimalPath) {
+		/**
+		 * Tell the user all the moves of the solvable-puzzle as well as the number of states explored.
+		 * 
+		 * @param optimalPath  The path that solves the puzzle in the fewest number of steps.
+		 */
 		System.out.println("Solution:\n");
 		
 		for (Operator o : optimalPath.getOperators()) {
@@ -303,10 +397,20 @@ class Output {
 	}
 	
 	private static void printFailure() {
+		/**
+		 * Tell the user that the puzzle is not solvable.
+		 */
 		System.out.println("For the above combination of the initial/goal states, there is no solution.");
 	}
 	
 	public static void printPathQueue(ArrayList<Path> paths, Heuristic heuristic) {
+		/**
+		 * NOTE: This method is used for debugging.
+		 * Prints all paths that are in the paths array. The heuristic is used to show estimates for each path.
+		 * 
+		 * @param paths      All paths currently being considered for expansion.
+		 * @param heuristic  The heuristic being used to efficiently solve the puzzle.
+		 */
 		System.out.println("====================================");
 		System.out.println("DEBUG: Paths in queue");
 		System.out.println("====================================");
@@ -317,6 +421,11 @@ class Output {
 	}
 	
 	public static void printChosenPath(Path p) {
+		/**
+		 * Print the path chosen for expansion.
+		 * 
+		 * @param p  the path chosen for expansion
+		 */
 		System.out.println("++++++++++++++++++++++++++++++++++++");
 		System.out.println("DEBUG: Chosen Path");
 		System.out.println("++++++++++++++++++++++++++++++++++++");
@@ -334,10 +443,13 @@ class State {
 	
 	private char[][] board = new char[3][3];
 	
-	// stores the shortest path to each node
+	// stores all states found so far.
 	final static HashSet<State> database = new HashSet<>();
 	
 	public State(char[][] configuration) {
+		/**
+		 * Creates a State from a 3x3 grid of characters.
+		 */
 		this.board = configuration;
 	}
 	
@@ -345,7 +457,7 @@ class State {
 		/**
 		 * Gets a set of all possible operators that can be used on the current state.
 		 * 
-		 * @return A HashSet of Operators
+		 * @return all operators that can be used on this state.
 		 */
 		HashSet<Operator> ops = new HashSet<Operator>();
 		
@@ -369,6 +481,9 @@ class State {
 		/**
 		 * Gets the operator that would transform the current state into the resultant state.
 		 * If no operator transforms the current state into the result state, null is returned.
+		 * 
+		 * @param result  the state to transform into.
+		 * @return the operator used to transform the current state into the result state.
 		 */
 		for (Operator o : this.getOperators()) {
 			if (this.transform(o).equals(result)) {
@@ -404,6 +519,10 @@ class State {
 	public char getAt(int row, int col) {
 		/**
 		 * Get the character at the location (row, col)
+		 * 
+		 * @param row  the index of the row to search at in the range 0-2
+		 * @param col  the index of the column to search at in the range 0-2
+		 * @return the character at the location (row, col)
 		 */
 		return this.board[row][col];
 	}
@@ -412,6 +531,9 @@ class State {
 		/**
 		 * Allows us to compare 2 states for equality.
 		 * States are equal if they have the same board.
+		 * 
+		 * @param obj  the state to compare with the current state
+		 * @return true if the states are equal and false otherwise.
 		 */
 		if (obj == this)
 			return true;
@@ -437,6 +559,8 @@ class State {
 		 * Allows us to hash a state.
 		 * To get the hashcode, we append all numbers in the state together and 
 		 * replace the blank with 0, then parse into an integer.
+		 * 
+		 * @return the hashed state
 		 */
 		String result = "";
 		for (int i=0; i<3; i++) {
@@ -450,9 +574,7 @@ class State {
 	
 	public ArrayList<State> getNeighbors() {
 		/**
-		 * Gets neighbors that are not already explored and 
-		 * in the process, explores the neighbor by adding it 
-		 * to database.
+		 * @return the neighboring states by applying all possible operators.
 		 */
 		ArrayList<State> unexplored = new ArrayList<State>();
 		
@@ -471,6 +593,9 @@ class State {
 		/**
 		 * Apply the operator on this state to get a new state.
 		 * If the operator is not valid, return null.
+		 * 
+		 * @param o  The operator to apply to the current state.
+		 * @return the new state after the operator is applied.
 		 */
 		
 		if (!this.getOperators().contains(o))
@@ -508,6 +633,9 @@ class State {
 	}
 	
 	public String toString() {
+		/**
+		 * Convert the state to a string.
+		 */
 		String str = "";
 		for (int i=0; i<3; i++) {
 			for (int j=0; j<3; j++) {
@@ -526,7 +654,10 @@ class Path{
 	
 	public Path(ArrayList<State> states) {
 		/**
+		 * Build a path using the states given.
 		 * Assumption: there is at least one state in the path.
+		 * 
+		 * @param states  The states in the path.
 		 */
 		this.states = states;
 	}
@@ -534,6 +665,8 @@ class Path{
 	public Path(State state) {
 		/**
 		 * Create a zero-length path with a single state.
+		 * 
+		 * @param state  The only state in the path.
 		 */
 		this.states = new ArrayList<>();
 		this.states.add(state);
@@ -545,6 +678,9 @@ class Path{
 		 * 
 		 * If the state already exists in the path, don't add it and return false.
 		 * Else, add it and return true.
+		 * 
+		 * @param state  The state to add to the path. 
+		 * @return true if the state was successfully added to the path, false otherwise.
 		 */
 		if (this.contains(state)) {
 			return false;
@@ -555,8 +691,10 @@ class Path{
 	
 	public boolean contains(State state) {
 		/**
-		 * If the state is in the path, return true.
-		 * Else, return false.
+		 * Determine if the path is contained in the state.
+		 * 
+		 * @param state the state that we're checking for in the path.
+		 * @return true if the state exists in the path, false otherwise.
 		 */
 		for (int i=0; i<this.states.size(); i++) {
 			if (this.states.get(i).equals(state)) {
@@ -568,8 +706,7 @@ class Path{
 	
 	public ArrayList<Operator> getOperators(){
 		/**
-		 * Returns a list of operators to progress through the 
-		 * states in the path.
+		 * @return all operators to traverse the states in the path.
 		 */
 		ArrayList<Operator> ops = new ArrayList<>();
 		
@@ -587,28 +724,44 @@ class Path{
 	
 	public int length() {
 		/**
-		 * Gets the number of transitions in the path.
+		 * @return the number of transitions (number of states minus one)
 		 */
 		return this.states.size() - 1;
 	}
 	
 	public float estimate(Heuristic heuristic) {
+		/**
+		 * Estimate the number of moves to get to reach the goal state. This number is calculated as:
+		 * 
+		 * estimate = (moves so far) + (heuristic estimate from terminal state)
+		 * 
+		 * NOTE: As we build the correct path, the estimate becomes more accurate and the heuristic
+		 *       of the estimate gets smaller.
+		 * 
+		 * @param heuristic  The heuristic used to estimate the distance to the goal state.
+		 */
 		return this.getOperators().size() + heuristic.eval(this.terminalState());
 	}
 	
 	public State terminalState() {
 		/**
-		 * Gets the last state in the path.
+		 * @return the last state in the path.
 		 */
 		return this.states.get(this.states.size() - 1);
 	}
 	
 	@SuppressWarnings("unchecked")
 	public Path copy() {
+		/**
+		 * @return a copy of this path.
+		 */
 		return new Path((ArrayList<State>)this.states.clone());
 	}
 	
 	public int compareTo(Path other, Heuristic heuristic) {
+		/**
+		 * Compare this path to another path based on their heuristic estimates.
+		 */
 		float est1 = this.estimate(heuristic);
 		float est2 = other.estimate(heuristic);
 		
@@ -625,6 +778,9 @@ class Path{
 	
 	@Override
 	public String toString() {
+		/**
+		 * Convert the path to a string.
+		 */
 		String str = "'";
 		for (Operator o : this.getOperators())
 			str += " -> " + o.toString();
@@ -637,6 +793,9 @@ class Path{
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 enum Operator {
+	/**
+	 * All directions that the blank can be moved.
+	 */
     UP, DOWN, RIGHT, LEFT; 
 }
 
@@ -645,31 +804,44 @@ enum Operator {
 // HEURISTICS
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-abstract class Heuristic {
-	
-	protected final State goal;
-	
-	public Heuristic(State goal) {
-		this.goal = goal;
+interface Heuristic {
+	/**
+	 * The interface used by all heuristics
+	 */
+	default public float eval(State src) {
+		/**
+		 * Estimates how many moves it would take to move from the src state to the goal state.
+		 * This always gives an underestimate to ensure optimality with the A* algorithm.
+		 * 
+		 * @param src  The state to estimate the number of moves from the goal.
+		 * @return an underestimate of the number of moves it would take to reach the goal state from the src state.
+		 */
+		return .0f;
 	}
-	
-	public float eval(State src) {
-		return 0;
-	}
-	
-	public String getSummary() {
-		return "No Summary";
+	default public String getSummary() {
+		/**
+		 * @return a summary of the heuristic
+		 */
+		return "No summary given";
 	}
 }
 
-class MisplacedTiles extends Heuristic {
+class MisplacedTiles implements Heuristic {
+	
+	private State goal;
 	
 	public MisplacedTiles(State goal) {
-		super(goal);
+		/**
+		 * Constructs a MisplacedTiles heuristic and sets the goal state.
+		 */
+		this.goal = goal;
 	}
 
 	@Override
 	public float eval(State src) {
+		/**
+		 * Gets the number of non-blank tiles that are out of place.
+		 */
 		float numMisplaced = 0.0f;
 		
 		for (int i=0; i<3; i++) {
@@ -689,14 +861,23 @@ class MisplacedTiles extends Heuristic {
 	}
 }
 
-class ManhattanDistance extends Heuristic {
+class ManhattanDistance implements Heuristic {
+	
+	private State goal;
 	
 	public ManhattanDistance(State goal) {
-		super(goal);
+		/**
+		 * Constructs a Manhattan Distance heuristic and sets the goal state.
+		 */
+		this.goal = goal;
 	}
 
 	@Override
 	public float eval(State src) {
+		/**
+		 * For each non-blank tile, determine the manhattan distance of where it is in the src and goal states.
+		 * Add all manhattan distances together.
+		 */
 		float dist = 0.0f;
 		
 		for (int i=0; i<3; i++) {
@@ -722,14 +903,22 @@ class ManhattanDistance extends Heuristic {
 	}
 }
 
-class CustomHeuristic extends Heuristic {
+class CustomHeuristic implements Heuristic {
+	
+	private State goal;
 	
 	public CustomHeuristic(State goal) {
-		super(goal);
+		/**
+		 * Constructs a CustomHeuristic heuristic and sets the goal state.
+		 */
+		this.goal = goal;
 	}
 
 	@Override
 	public float eval(State src) {
+		/**
+		 * Take the average of the MisplacedTiles and the ManhattanDistance heuristics.
+		 */
 		MisplacedTiles h1 = new MisplacedTiles(goal);
 		ManhattanDistance h2 = new ManhattanDistance(goal);
 		return (h1.eval(src) + h2.eval(src)) / 2;
