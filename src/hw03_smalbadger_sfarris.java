@@ -11,7 +11,7 @@ import java.lang.Math;
 // CONTROL STRATEGY
 ////////////////////////////////////////////////////////////////////////////////////////////
 
-class hw03_smalbadger{
+class hw03_smalbadger_sfarris{
 	
 	public static void main(String[] args) {
 		/**
@@ -22,8 +22,8 @@ class hw03_smalbadger{
 		 * 
 		 * @param args  the command-line arguments to the program.
 		 */
-		//Input input = Input.getHardCoded();
-		Input input = Input.getFromUser();
+		Input input = Input.getHardCoded();
+		//Input input = Input.getFromUser();
 		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
 		Output.printDone(path);
 	}
