@@ -6,5 +6,5 @@ class hw03_smalbadger_sfarris{
 		 * Once this project is turned in, this file will be deleted.
 		 */
 		PuzzleSolver.main(args);
-	}
+  }
 }
