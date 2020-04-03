@@ -6,6 +6,7 @@ import java.util.HashMap;
 import database.State;
 import database.Path;
 import heuristics.Heuristic;
+import io.Output;
 
 public class AStar extends ControlStrategy{
 	

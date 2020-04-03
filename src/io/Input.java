@@ -7,6 +7,7 @@ import java.util.Scanner;
 
 import database.State;
 import heuristics.Heuristic;
+import heuristics.NoHeuristic;
 import heuristics.CompositeHeuristic;
 import heuristics.ManhattanDistance;
 import heuristics.MisplacedTiles;
@@ -84,9 +85,10 @@ public class Input {
 		
 		State initial = new State(initial_config);
 		State goal    = new State(goal_config);
+		//Heuristic heuristic = new NoHeuristic(goal);
 		//Heuristic heuristic = new MisplacedTiles(goal);
-		//Heuristic heuristic = new ManhattanDistance(goal);
-		Heuristic heuristic = new CompositeHeuristic(goal);
+		Heuristic heuristic = new ManhattanDistance(goal);
+		//Heuristic heuristic = new CompositeHeuristic(goal);
 		
 		return new Input(initial, goal, heuristic);
 	}
