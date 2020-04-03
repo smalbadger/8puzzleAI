@@ -645,6 +645,10 @@ class State {
 		}
 		return str;
 	}
+	
+	public char[][] getBoard(){
+		return this.board;
+	}
 }
 
 
@@ -929,3 +933,43 @@ class CustomHeuristic implements Heuristic {
 		return "Mean of Misplaced Tiles and Manhattan Distance heuristics";
 	}
 }
+
+//////////////////////////
+// Solvability Checker
+//////////////////////////
+class Solvability{
+	
+	static int getInvCount(State state) {
+		int invCount = 0; // Inversion count. Google 8-puzzle Inversion.
+		
+		//Squashing the 2D array to a 1D array for easier processing.
+		char[][] board2D = state.getBoard();
+		char[] board1D = new char[9];
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				board1D[(i*3)+(j)] = board2D[i][j];
+			}
+		}
+		
+		//Compare every element against every subsequent element.
+	    for(int i = 0; i < 9-1; i++) {
+	    	for(int j = i+1; j < 9; j++) {
+	    		//Ignore blanks '-'.
+	    		if( (board1D[i] != '-') && (board1D[j] != '-') && (board1D[i] > board1D[j]) ){
+	    			invCount++;
+	    		}
+	    	}
+	    }
+		
+		return invCount; 
+	}
+	
+	static boolean isSolvable(State initState, State goalState) {
+		int initInversions = getInvCount(initState);
+		int goalInversions = getInvCount(goalState);
+		
+		//If the evenness or oddness of the number of inversions between the two states differ, unsolvable.
+		return (initInversions % 2) == (goalInversions % 2);
+	}
+}
+
