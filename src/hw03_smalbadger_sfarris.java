@@ -17,15 +17,24 @@ class hw03_smalbadger_sfarris{
 		/**
 		 * The entry point for the 8-puzzle program that handles all high-level steps:
 		 * 	- Getting input INITIAL_STATE, GOAL_STATE, and HEURISTIC
+		 *  - Comparing the initial state and goal state to see if the puzzle is solvable. 
 		 * 	- Running the A* algorithm to solve the 8-puzzle.
 		 * 	- Print the result.
 		 * 
 		 * @param args  the command-line arguments to the program.
 		 */
-		Input input = Input.getHardCoded();
-		//Input input = Input.getFromUser();
-		Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
-		Output.printDone(path);
+		//Input input = Input.getHardCoded();
+		Input input = Input.getFromUser();
+		
+		if (Solvability.isSolvable(input.getInitial(), input.getGoal()) ){
+			Path path = aStar(input.getInitial(), input.getGoal(), input.getHeuristic());
+			Output.printDone(path);
+		}
+		else {
+			//Not solvable.
+			Output.printFailure();
+		}
+		
 	}
 	
 	private static Path aStar(State initial, State goal, Heuristic heuristic) {
@@ -396,7 +405,7 @@ class Output {
 		System.out.printf("The A* explored %d number of nodes to find this solution.", State.database.size());
 	}
 	
-	private static void printFailure() {
+	public static void printFailure() {
 		/**
 		 * Tell the user that the puzzle is not solvable.
 		 */
@@ -940,6 +949,11 @@ class CustomHeuristic implements Heuristic {
 class Solvability{
 	
 	static int getInvCount(State state) {
+		/**
+		 * Returns the inversion count of a given state of the 8-puzzle.
+		 * The relative evenness of the initial state and the goal state determines 
+		 * if a puzzle is solvable.
+		 */
 		int invCount = 0; // Inversion count. Google 8-puzzle Inversion.
 		
 		//Squashing the 2D array to a 1D array for easier processing.
@@ -965,6 +979,9 @@ class Solvability{
 	}
 	
 	static boolean isSolvable(State initState, State goalState) {
+		/**
+		 * Tells you if the 8-puzzle has a solution or not for the given initial state and goal state. 
+		 */
 		int initInversions = getInvCount(initState);
 		int goalInversions = getInvCount(goalState);
 		
