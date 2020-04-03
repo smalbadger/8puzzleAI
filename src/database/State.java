@@ -21,6 +21,47 @@ public class State {
 		this.board = configuration;
 	}
 	
+	public int getInvCount() {
+		/**
+		 * Returns the inversion count of a given state of the 8-puzzle.
+		 * The relative evenness of the initial state and the goal state determines 
+		 * if a puzzle is solvable.
+		 */
+		int invCount = 0; // Inversion count. Google 8-puzzle Inversion.
+		
+		//Squashing the 2D array to a 1D array for easier processing.
+		char[][] board2D = this.board;
+		char[] board1D = new char[9];
+		for(int i = 0; i < 3; i++) {
+			for(int j = 0; j < 3; j++) {
+				board1D[(i*3)+(j)] = board2D[i][j];
+			}
+		}
+		
+		//Compare every element against every subsequent element.
+	    for(int i = 0; i < 9-1; i++) {
+	    	for(int j = i+1; j < 9; j++) {
+	    		//Ignore blanks '-'.
+	    		if( (board1D[i] != '-') && (board1D[j] != '-') && (board1D[i] > board1D[j]) ){
+	    			invCount++;
+	    		}
+	    	}
+	    }
+		
+		return invCount; 
+	}
+	
+	public boolean canReach(State goalState) {
+		/**
+		 * Tells you if the 8-puzzle has a solution or not for the given initial state and goal state. 
+		 */
+		int initInversions = this.getInvCount();
+		int goalInversions = goalState.getInvCount();
+		
+		//If the evenness or oddness of the number of inversions between the two states differ, unsolvable.
+		return (initInversions % 2) == (goalInversions % 2);
+	}
+	
 	public static State generateRandom() {
 		/**
 		 * @return a randomly-generated state

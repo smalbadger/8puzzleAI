@@ -101,7 +101,7 @@ public class Output {
 		System.out.printf("The A* explored %d number of nodes to find this solution.", State.database.size());
 	}
 	
-	private static void printFailure() {
+	public static void printFailure() {
 		/**
 		 * Tell the user that the puzzle is not solvable.
 		 */

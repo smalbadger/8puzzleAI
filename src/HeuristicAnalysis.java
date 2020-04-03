@@ -23,14 +23,14 @@ public class HeuristicAnalysis {
 		ControlStrategy cs = new AStar();
 		
 		System.out.println("===== " + cs.getName() + " =====");
-		System.out.println("   #   Misplaced   Manhattan   Composite");
-		System.out.println("----  ----------  ----------  ----------");
+		System.out.println("   #        None   Misplaced   Manhattan   Composite");
+		System.out.println("----  ----------  ----------  ----------  ----------");
 		
 		
 		int numSamples = 100;
 		for (int numMoves=1; numMoves<20; numMoves++) {
 			
-			int[] cumulativeDBSizes = {0,0,0};
+			int[] cumulativeDBSizes = {0,0,0,0};
 			
 			for (int i=0; i<numSamples; i++) {
 				State goal = State.generateRandom();
@@ -38,7 +38,7 @@ public class HeuristicAnalysis {
 				
 				ArrayList<Path> solutions = new ArrayList<>();
 				ArrayList<Heuristic> heuristics = new ArrayList<>();
-				//heuristics.add(new NoHeuristic(goal));
+				heuristics.add(new NoHeuristic(goal));
 				heuristics.add(new MisplacedTiles(goal));
 				heuristics.add(new ManhattanDistance(goal));
 				heuristics.add(new CompositeHeuristic(goal));
