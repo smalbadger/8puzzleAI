@@ -14,8 +14,8 @@ public class PuzzleSolver{
 		 * 
 		 * @param args  the command-line arguments to the program.
 		 */
-		Input input = Input.getHardCoded();
-		//Input input = Input.getFromUser();
+		//Input input = Input.getHardCoded();
+		Input input = Input.getFromUser();
 		
 		if (input.getInitial().canReach(input.getGoal()) ){
 			Path path = new AStar().exec(input.getInitial(), input.getGoal(), input.getHeuristic());
