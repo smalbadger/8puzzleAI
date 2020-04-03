@@ -82,6 +82,7 @@ public class Output {
 		else {
 			Output.printSuccess(path);
 		}
+		System.out.println();
 	}
 	
 	private static void printSuccess(Path optimalPath) {

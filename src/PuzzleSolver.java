@@ -17,7 +17,7 @@ public class PuzzleSolver{
 		//Input input = Input.getHardCoded();
 		Input input = Input.getFromUser();
 		
-		if (input.getInitial().canReach(input.getGoal()) ){
+		if (input.getInitial().canReach(input.getGoal())){
 			Path path = new AStar().exec(input.getInitial(), input.getGoal(), input.getHeuristic());
 			Output.printDone(path);
 		}
@@ -25,6 +25,5 @@ public class PuzzleSolver{
 			//Not solvable.
 			Output.printFailure();
 		}
-		
 	}
 }
